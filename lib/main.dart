@@ -103,6 +103,7 @@ class _MovieScreenState extends State<MovieScreen> {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: Colors.black.withOpacity(0.6),
                 borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(12),

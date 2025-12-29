@@ -5,6 +5,7 @@ import '../models/movie.dart';
 class MovieServices {
   final String apiKey = "6a7fa001";
 
+  
   Future<List<Movie>> searchMovies(String query) async {
     try {
       final url = "https://www.omdbapi.com/?apikey=$apiKey&s=$query";
@@ -17,49 +18,30 @@ class MovieServices {
       if (data["Response"] == "True" && data["Search"] != null) {
         List results = data["Search"];
 
-        // Fetch details in parallel
+        // Parallel requests using Future.wait
         final movies = await Future.wait(
-          results.map((item) => fetchMovieDetail(item["imdbID"])),
+          results.map((item) => fetchMovieDetail(item["imdbID"])).toList(),
         );
 
-        return movies.whereType<Movie>().toList();
+        return movies;
       } else {
         print("OMDb Search Error: ${data["Error"]}");
         return [];
       }
     } catch (e) {
-      print("Exception in searchMovies: $e");
+      print("Exception: $e");
       return [];
     }
   }
 
+  // Movie detail fetch karne ke liye function
   Future<Movie> fetchMovieDetail(String imdbID) async {
-    try {
-      final url =
-          "https://www.omdbapi.com/?apikey=$apiKey&i=$imdbID&plot=short";
-      final response = await http.get(Uri.parse(url));
+    final url = "https://www.omdbapi.com/?apikey=$apiKey&i=$imdbID&plot=short";
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode != 200) return Movie(title: "N/A", poster: "N/A", year: "N/A", plot: "");
 
-      if (response.statusCode != 200) {
-        return Movie(
-          title: "N/A",
-          poster: "N/A",
-          year: "N/A",
-          plot: "",
-        );
-      }
-
-      final data = json.decode(response.body);
-
-      return Movie.fromJson(data); 
-    } catch (e) {
-      print("Exception in fetchMovieDetail: $e");
-      return Movie(
-        title: "Error",
-        poster: "",
-        year: "",
-        plot: "",
-      );
-    }
+    final data = json.decode(response.body);
+    return Movie.fromJson(data);
   }
 }
 
