@@ -18,6 +18,7 @@ class MovieServices {
       if (data["Response"] == "True" && data["Search"] != null) {
         List results = data["Search"];
 
+        // Har movie ke liye detailed API call karenge taaki Genre, Plot, etc. mil sakein
         final movies = await Future.wait(
           results.map((item) => fetchMovieDetail(item["imdbID"])).toList(),
         );
@@ -34,13 +35,19 @@ class MovieServices {
   }
 
   Future<Movie> fetchMovieDetail(String imdbID) async {
-    final url = "https://www.omdbapi.com/?apikey=$apiKey&i=$imdbID&plot=short";
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode != 200) {
-      return Movie(title: "N/A", poster: "N/A", year: "N/A", plot: "", rating: "N/A");
-    }
+    try {
+      final url = "https://www.omdbapi.com/?apikey=$apiKey&i=$imdbID&plot=short";
+      final response = await http.get(Uri.parse(url));
+      
+      if (response.statusCode != 200) {
+        return Movie(title: "N/A", poster: "N/A", year: "N/A", plot: "", rating: "N/A", genre: "N/A");
+      }
 
-    final data = json.decode(response.body);
-    return Movie.fromJson(data);
+      final data = json.decode(response.body);
+      return Movie.fromJson(data);
+    } catch (e) {
+      debugPrint("Detail Exception: $e");
+      return Movie(title: "N/A", poster: "N/A", year: "N/A", plot: "", rating: "N/A", genre: "N/A");
+    }
   }
 }
